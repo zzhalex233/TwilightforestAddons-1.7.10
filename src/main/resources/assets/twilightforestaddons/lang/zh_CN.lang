@@ -1,0 +1,19 @@
+item.advancedEmptyMagicMap.name=高级空白魔法地图
+item.advancedMagicMap.name=高级魔法地图
+
+gui.twilightforestaddons.advanced_map.title=高级魔法地图
+gui.twilightforestaddons.advanced_map.loading=正在加载地图数据...
+gui.twilightforestaddons.advanced_map.hint=左键点击 Boss 图标传送，右键关闭界面。
+gui.twilightforestaddons.advanced_map.target=目标：%s
+gui.twilightforestaddons.advanced_map.center=中心：X=%s Z=%s
+gui.twilightforestaddons.advanced_map.facing=朝向：%s
+gui.twilightforestaddons.advanced_map.cursor=光标：X=%s Z=%s
+gui.twilightforestaddons.advanced_map.locked=进度未解锁
+
+gui.twilightforestaddons.direction.north=北
+gui.twilightforestaddons.direction.south=南
+gui.twilightforestaddons.direction.west=西
+gui.twilightforestaddons.direction.east=东
+
+message.twilightforestaddons.teleport=已传送到结构坐标 X=%s Y=%s Z=%s
+message.twilightforestaddons.teleport_blocked_progress=尚未解锁该结构进度：%s

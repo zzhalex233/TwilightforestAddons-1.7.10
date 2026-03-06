@@ -1,0 +1,19 @@
+item.advancedEmptyMagicMap.name=Advanced Blank Magic Map
+item.advancedMagicMap.name=Advanced Magic Map
+
+gui.twilightforestaddons.advanced_map.title=Advanced Magic Map
+gui.twilightforestaddons.advanced_map.loading=Loading map data...
+gui.twilightforestaddons.advanced_map.hint=Left click a boss icon to teleport. Right click to close.
+gui.twilightforestaddons.advanced_map.target=Target: %s
+gui.twilightforestaddons.advanced_map.center=Center: X=%s Z=%s
+gui.twilightforestaddons.advanced_map.facing=Facing: %s
+gui.twilightforestaddons.advanced_map.cursor=Cursor: X=%s Z=%s
+gui.twilightforestaddons.advanced_map.locked=Progression locked
+
+gui.twilightforestaddons.direction.north=North
+gui.twilightforestaddons.direction.south=South
+gui.twilightforestaddons.direction.west=West
+gui.twilightforestaddons.direction.east=East
+
+message.twilightforestaddons.teleport=Teleported to structure at X=%s Y=%s Z=%s
+message.twilightforestaddons.teleport_blocked_progress=Progression is not unlocked for %s yet
