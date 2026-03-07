@@ -20,7 +20,7 @@ public class CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
         ModItems.init();
-        ModNetwork.init();
+        ModNetwork.initCommon();
 
         TwilightForestAddons.LOG.info(Config.greeting);
         TwilightForestAddons.LOG.info("I am Twilight Forest Addons at version " + Tags.VERSION);

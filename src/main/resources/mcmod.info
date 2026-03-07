@@ -3,18 +3,16 @@
 	"modList": [{
 		"modid": "${modId}",
 		"name": "${modName}",
-		"description": "Twilight Forest Addons for Minecraft 1.7.10 Forge.",
+		"description": "An addon for The Twilight Forest that adds advanced magic maps, and an interactive large map GUI for boss structure teleportation.",
 		"version": "${modVersion}",
 		"mcversion": "${minecraftVersion}",
-		"url": "",
+		"url": "https://github.com/zzhalex233/TwilightforestAddons-1.7.10",
 		"updateUrl": "",
-		"authorList": [],
+		"authorList": ["zzhalex233"],
 		"credits": "",
 		"logoFile": "",
-		"screenshots": [],
+		"screenshots": ["assets/twilightforestaddons/screenshot.png"],
 		"parent": "",
-		"requiredMods": [],
-		"dependencies": [],
 		"dependants": [],
 		"useDependencyInformation": false
 	}]

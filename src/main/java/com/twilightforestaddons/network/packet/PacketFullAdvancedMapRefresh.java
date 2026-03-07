@@ -2,16 +2,9 @@ package com.twilightforestaddons.network.packet;
 
 import java.util.Arrays;
 
-import net.minecraft.client.Minecraft;
-
-import com.twilightforestaddons.map.AdvancedMagicMapDataUtils;
-
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
-import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
-import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
 import twilightforest.TFMagicMapData;
-import twilightforest.item.ItemTFMagicMap;
 
 public class PacketFullAdvancedMapRefresh implements IMessage {
 
@@ -65,53 +58,31 @@ public class PacketFullAdvancedMapRefresh implements IMessage {
         buf.writeBytes(this.features);
     }
 
-    public static class Handler implements IMessageHandler<PacketFullAdvancedMapRefresh, IMessage> {
+    public int getMapId() {
+        return this.mapId;
+    }
 
-        @Override
-        public IMessage onMessage(final PacketFullAdvancedMapRefresh message, MessageContext ctx) {
-            final Minecraft mc = Minecraft.getMinecraft();
-            if (mc == null) {
-                return null;
-            }
+    public int getXCenter() {
+        return this.xCenter;
+    }
 
-            mc.func_152344_a(new Runnable() {
+    public int getZCenter() {
+        return this.zCenter;
+    }
 
-                @Override
-                public void run() {
-                    apply(message, mc);
-                }
-            });
-            return null;
-        }
+    public int getDimension() {
+        return this.dimension;
+    }
 
-        private static void apply(PacketFullAdvancedMapRefresh message, Minecraft mc) {
-            if (mc.theWorld == null) {
-                return;
-            }
+    public byte getScale() {
+        return this.scale;
+    }
 
-            TFMagicMapData mapData = ItemTFMagicMap.getMPMapData(message.mapId, mc.theWorld);
-            if (mapData == null) {
-                return;
-            }
+    public byte[] getColors() {
+        return this.colors;
+    }
 
-            mapData.xCenter = message.xCenter;
-            mapData.zCenter = message.zCenter;
-            mapData.dimension = message.dimension;
-            mapData.scale = message.scale;
-
-            Arrays.fill(mapData.colors, (byte) 0);
-            System.arraycopy(
-                message.colors,
-                0,
-                mapData.colors,
-                0,
-                Math.min(mapData.colors.length, message.colors.length));
-
-            mapData.featuresVisibleOnMap.clear();
-            if (message.features != null && message.features.length > 0) {
-                mapData.updateMPMapData(message.features);
-            }
-            AdvancedMagicMapDataUtils.dedupeFeaturesInPlace(mapData.featuresVisibleOnMap);
-        }
+    public byte[] getFeatures() {
+        return this.features;
     }
 }

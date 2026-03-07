@@ -35,5 +35,4 @@
  */
 dependencies {
     devOnlyNonPublishable(rfg.deobf(project.files("libs/TwilightForest-2.4.3.jar")))
-    runtimeOnlyNonPublishable(rfg.deobf(project.files("libs/spark-1.10.19-forge1710.jar")))
 }
