@@ -14,11 +14,13 @@ import com.twilightforestaddons.map.BossFeatureRegistry;
 
 public final class DefeatedBossIconOverlayRenderer {
 
-    private static final ResourceLocation TWILIGHT_MAP_ICONS = new ResourceLocation("twilightforest:textures/gui/mapicons.png");
+    private static final ResourceLocation TWILIGHT_MAP_ICONS = new ResourceLocation(
+        "twilightforest:textures/gui/mapicons.png");
 
     private DefeatedBossIconOverlayRenderer() {}
 
-    public static void renderDefeatedBossOverlays(EntityPlayer player, TextureManager textureManager, List<MapCoord> features) {
+    public static void renderDefeatedBossOverlays(EntityPlayer player, TextureManager textureManager,
+        List<MapCoord> features) {
         if (player == null || textureManager == null || features == null || features.isEmpty()) {
             return;
         }

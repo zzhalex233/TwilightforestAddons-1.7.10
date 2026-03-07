@@ -101,10 +101,7 @@ public class AdvancedMagicMapItemRenderer implements IItemRenderer {
             float iconCenterX = left + (coord.centerX / 2.0F + 64.0F) * scale;
             float iconCenterY = top + (coord.centerZ / 2.0F + 64.0F) * scale;
             if (Math.abs(mouseX - iconCenterX) <= iconHalfSize && Math.abs(mouseY - iconCenterY) <= iconHalfSize) {
-                return new HoveredFeature(
-                    coord.iconSize,
-                    coord.centerX,
-                    coord.centerZ);
+                return new HoveredFeature(coord.iconSize, coord.centerX, coord.centerZ);
             }
         }
 
@@ -112,13 +109,11 @@ public class AdvancedMagicMapItemRenderer implements IItemRenderer {
     }
 
     public int mapPixelToWorldX(TFMagicMapData mapData, float localPixelX) {
-        return MathHelper.floor_double(
-            mapData.xCenter + (localPixelX - 64.0F) * this.getBlocksPerPixel(mapData));
+        return MathHelper.floor_double(mapData.xCenter + (localPixelX - 64.0F) * this.getBlocksPerPixel(mapData));
     }
 
     public int mapPixelToWorldZ(TFMagicMapData mapData, float localPixelZ) {
-        return MathHelper.floor_double(
-            mapData.zCenter + (localPixelZ - 64.0F) * this.getBlocksPerPixel(mapData));
+        return MathHelper.floor_double(mapData.zCenter + (localPixelZ - 64.0F) * this.getBlocksPerPixel(mapData));
     }
 
     private TFMagicMapRenderer getDelegate() {
@@ -133,13 +128,13 @@ public class AdvancedMagicMapItemRenderer implements IItemRenderer {
     }
 
     private int mapCoordToWorldX(TFMagicMapData mapData, MapCoord coord) {
-        return MathHelper.floor_double(
-            mapData.xCenter + coord.centerX * (double) this.getBlocksPerPixel(mapData) / 2.0D);
+        return MathHelper
+            .floor_double(mapData.xCenter + coord.centerX * (double) this.getBlocksPerPixel(mapData) / 2.0D);
     }
 
     private int mapCoordToWorldZ(TFMagicMapData mapData, MapCoord coord) {
-        return MathHelper.floor_double(
-            mapData.zCenter + coord.centerZ * (double) this.getBlocksPerPixel(mapData) / 2.0D);
+        return MathHelper
+            .floor_double(mapData.zCenter + coord.centerZ * (double) this.getBlocksPerPixel(mapData) / 2.0D);
     }
 
     private int getBlocksPerPixel(TFMagicMapData mapData) {

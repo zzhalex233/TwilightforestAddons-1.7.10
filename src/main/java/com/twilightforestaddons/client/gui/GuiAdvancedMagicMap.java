@@ -12,8 +12,8 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.GL11;
 
 import com.twilightforestaddons.Config;
 import com.twilightforestaddons.client.renderer.AdvancedMagicMapItemRenderer;
@@ -101,54 +101,59 @@ public class GuiAdvancedMagicMap extends GuiScreen {
 
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glDepthMask(false);
-        this.renderer.renderGuiMap(this.mc.thePlayer, this.mc.getTextureManager(), mapData, this.mapLeft, this.mapTop, this.mapSize);
-        GL11.glDepthMask(true);
-        GL11.glEnable(GL11.GL_DEPTH_TEST);
-
-        HoveredFeature hovered = this.renderer.findHoveredFeature(
+        this.renderer.renderGuiMap(
+            this.mc.thePlayer,
+            this.mc.getTextureManager(),
             mapData,
-            mouseX,
-            mouseY,
             this.mapLeft,
             this.mapTop,
             this.mapSize);
+        GL11.glDepthMask(true);
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+
+        HoveredFeature hovered = this.renderer
+            .findHoveredFeature(mapData, mouseX, mouseY, this.mapLeft, this.mapTop, this.mapSize);
 
         List<InfoLine> infoLines = new ArrayList<InfoLine>();
-        infoLines.add(new InfoLine(
-            StatCollector.translateToLocalFormatted(
-                "gui.twilightforestaddons.advanced_map.center",
-                mapData.xCenter,
-                mapData.zCenter),
-            0xEAEAEA));
-        infoLines.add(new InfoLine(
-            StatCollector.translateToLocalFormatted(
-                "gui.twilightforestaddons.advanced_map.facing",
-                this.getFacingLabel()),
-            0xEAEAEA));
+        infoLines.add(
+            new InfoLine(
+                StatCollector.translateToLocalFormatted(
+                    "gui.twilightforestaddons.advanced_map.center",
+                    mapData.xCenter,
+                    mapData.zCenter),
+                0xEAEAEA));
+        infoLines.add(
+            new InfoLine(
+                StatCollector
+                    .translateToLocalFormatted("gui.twilightforestaddons.advanced_map.facing", this.getFacingLabel()),
+                0xEAEAEA));
 
         if (this.isInsideMap(mouseX, mouseY)) {
             int hoverWorldX = this.renderer.mapPixelToWorldX(mapData, (mouseX - this.mapLeft) * 128.0F / this.mapSize);
             int hoverWorldZ = this.renderer.mapPixelToWorldZ(mapData, (mouseY - this.mapTop) * 128.0F / this.mapSize);
-            infoLines.add(new InfoLine(
-                StatCollector.translateToLocalFormatted(
-                    "gui.twilightforestaddons.advanced_map.cursor",
-                    hoverWorldX,
-                    hoverWorldZ),
-                0x8FE0FF));
+            infoLines.add(
+                new InfoLine(
+                    StatCollector.translateToLocalFormatted(
+                        "gui.twilightforestaddons.advanced_map.cursor",
+                        hoverWorldX,
+                        hoverWorldZ),
+                    0x8FE0FF));
         }
 
         if (hovered != null) {
-            infoLines.add(new InfoLine(
-                StatCollector.translateToLocalFormatted(
-                    "gui.twilightforestaddons.advanced_map.target",
-                    BossFeatureRegistry.getFeatureName(hovered.featureId)),
-                0xFFD35A));
+            infoLines.add(
+                new InfoLine(
+                    StatCollector.translateToLocalFormatted(
+                        "gui.twilightforestaddons.advanced_map.target",
+                        BossFeatureRegistry.getFeatureName(hovered.featureId)),
+                    0xFFD35A));
 
             if (Config.advancedMapEnforceProgression
                 && !BossFeatureRegistry.isFeatureUnlocked(hovered.featureId, this.mc.thePlayer)) {
-                infoLines.add(new InfoLine(
-                    StatCollector.translateToLocal("gui.twilightforestaddons.advanced_map.locked"),
-                    0xFF6666));
+                infoLines.add(
+                    new InfoLine(
+                        StatCollector.translateToLocal("gui.twilightforestaddons.advanced_map.locked"),
+                        0xFF6666));
             }
         }
 
@@ -168,13 +173,8 @@ public class GuiAdvancedMagicMap extends GuiScreen {
 
         if (mouseButton == 0) {
             TFMagicMapData mapData = this.renderer.getClientMapData(this.mapId, this.mc.theWorld);
-            HoveredFeature hovered = this.renderer.findHoveredFeature(
-                mapData,
-                mouseX,
-                mouseY,
-                this.mapLeft,
-                this.mapTop,
-                this.mapSize);
+            HoveredFeature hovered = this.renderer
+                .findHoveredFeature(mapData, mouseX, mouseY, this.mapLeft, this.mapTop, this.mapSize);
             if (hovered != null) {
                 ModNetwork.CHANNEL.sendToServer(
                     new PacketTeleportToBossFeature(
@@ -262,7 +262,8 @@ public class GuiAdvancedMagicMap extends GuiScreen {
     }
 
     private void drawMapBackground(int left, int top, int size) {
-        this.mc.getTextureManager().bindTexture(MAP_BACKGROUND);
+        this.mc.getTextureManager()
+            .bindTexture(MAP_BACKGROUND);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawingQuads();
@@ -279,7 +280,11 @@ public class GuiAdvancedMagicMap extends GuiScreen {
         int panelLeft = this.width / 2 - panelWidth / 2;
         int panelTop = this.mapTop - 28;
         this.drawPanel(panelLeft, panelTop, panelWidth, 16);
-        this.fontRendererObj.drawStringWithShadow(title, this.width / 2 - this.fontRendererObj.getStringWidth(title) / 2, panelTop + 4, 0xFFFFFF);
+        this.fontRendererObj.drawStringWithShadow(
+            title,
+            this.width / 2 - this.fontRendererObj.getStringWidth(title) / 2,
+            panelTop + 4,
+            0xFFFFFF);
     }
 
     private void drawHintPanel() {
@@ -288,7 +293,11 @@ public class GuiAdvancedMagicMap extends GuiScreen {
         int panelLeft = this.width / 2 - panelWidth / 2;
         int panelTop = this.mapTop + this.mapSize + 10;
         this.drawPanel(panelLeft, panelTop, panelWidth, 16);
-        this.fontRendererObj.drawStringWithShadow(hint, this.width / 2 - this.fontRendererObj.getStringWidth(hint) / 2, panelTop + 4, 0xD8D8D8);
+        this.fontRendererObj.drawStringWithShadow(
+            hint,
+            this.width / 2 - this.fontRendererObj.getStringWidth(hint) / 2,
+            panelTop + 4,
+            0xD8D8D8);
     }
 
     private void drawInfoPanel(List<InfoLine> infoLines) {
@@ -328,7 +337,8 @@ public class GuiAdvancedMagicMap extends GuiScreen {
             return;
         }
 
-        this.refreshButton.width = Math.max(76, this.fontRendererObj.getStringWidth(this.refreshButton.displayString) + 16);
+        this.refreshButton.width = Math
+            .max(76, this.fontRendererObj.getStringWidth(this.refreshButton.displayString) + 16);
         this.refreshButton.xPosition = this.mapLeft + this.mapSize - this.refreshButton.width;
         this.refreshButton.yPosition = this.mapTop - 30;
     }
@@ -397,14 +407,20 @@ public class GuiAdvancedMagicMap extends GuiScreen {
                 return;
             }
 
-            this.field_146123_n = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width
+            this.field_146123_n = mouseX >= this.xPosition && mouseY >= this.yPosition
+                && mouseX < this.xPosition + this.width
                 && mouseY < this.yPosition + this.height;
 
             int background = this.field_146123_n ? BUTTON_BACKGROUND_HOVER : BUTTON_BACKGROUND;
             int border = this.field_146123_n ? BUTTON_BORDER_HOVER : PANEL_BORDER;
             int textColor = !this.enabled ? 0x888888 : this.field_146123_n ? 0xFFFFFF : 0xE6E6E6;
 
-            drawRect(this.xPosition, this.yPosition, this.xPosition + this.width, this.yPosition + this.height, background);
+            drawRect(
+                this.xPosition,
+                this.yPosition,
+                this.xPosition + this.width,
+                this.yPosition + this.height,
+                background);
             drawRect(this.xPosition, this.yPosition, this.xPosition + this.width, this.yPosition + 1, border);
             drawRect(
                 this.xPosition,

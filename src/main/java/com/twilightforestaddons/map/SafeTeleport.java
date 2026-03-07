@@ -162,7 +162,8 @@ public final class SafeTeleport {
 
                     int chunkX = centerChunkX + dx;
                     int chunkZ = centerChunkZ + dz;
-                    if (!world.getChunkProvider().chunkExists(chunkX, chunkZ)) {
+                    if (!world.getChunkProvider()
+                        .chunkExists(chunkX, chunkZ)) {
                         world.getChunkFromChunkCoords(chunkX, chunkZ);
                         loads++;
                         if (loads >= maxChunkLoads) {
@@ -186,10 +187,12 @@ public final class SafeTeleport {
         if (below == null || below.isAir(world, x, y - 1, z)) {
             return false;
         }
-        if (below.getMaterial() != null && below.getMaterial().isLiquid()) {
+        if (below.getMaterial() != null && below.getMaterial()
+            .isLiquid()) {
             return false;
         }
-        if (below.getMaterial() != null && below.getMaterial().isReplaceable()) {
+        if (below.getMaterial() != null && below.getMaterial()
+            .isReplaceable()) {
             return false;
         }
 
@@ -203,7 +206,8 @@ public final class SafeTeleport {
         return true;
     }
 
-    private static Result findNearestSafeSpot(World world, int x, int z, EntityPlayer player, int maxRadius, Options options) {
+    private static Result findNearestSafeSpot(World world, int x, int z, EntityPlayer player, int maxRadius,
+        Options options) {
         for (int radius = 0; radius <= maxRadius; radius++) {
             for (int dz = -radius; dz <= radius; dz++) {
                 for (int dx = -radius; dx <= radius; dx++) {
@@ -311,7 +315,8 @@ public final class SafeTeleport {
             return true;
         }
 
-        return block.getMaterial() != null && block.getMaterial().isReplaceable();
+        return block.getMaterial() != null && block.getMaterial()
+            .isReplaceable();
     }
 
     private static NBTTagCompound getCorrectionTag(EntityPlayer player) {
@@ -333,7 +338,8 @@ public final class SafeTeleport {
 
     private static void clearCorrectionTag(EntityPlayer player) {
         if (player != null) {
-            player.getEntityData().removeTag(TAG_ROOT);
+            player.getEntityData()
+                .removeTag(TAG_ROOT);
         }
     }
 

@@ -100,7 +100,12 @@ public class PacketFullAdvancedMapRefresh implements IMessage {
             mapData.scale = message.scale;
 
             Arrays.fill(mapData.colors, (byte) 0);
-            System.arraycopy(message.colors, 0, mapData.colors, 0, Math.min(mapData.colors.length, message.colors.length));
+            System.arraycopy(
+                message.colors,
+                0,
+                mapData.colors,
+                0,
+                Math.min(mapData.colors.length, message.colors.length));
 
             mapData.featuresVisibleOnMap.clear();
             if (message.features != null && message.features.length > 0) {

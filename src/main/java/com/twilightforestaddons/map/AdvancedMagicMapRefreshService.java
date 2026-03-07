@@ -56,12 +56,18 @@ public final class AdvancedMagicMapRefreshService {
         mapData.markDirty();
 
         ModNetwork.CHANNEL.sendTo(
-            new PacketSyncAdvancedMapCenter(held.getItemDamage(), mapData.xCenter, mapData.zCenter, mapData.dimension, mapData.scale),
+            new PacketSyncAdvancedMapCenter(
+                held.getItemDamage(),
+                mapData.xCenter,
+                mapData.zCenter,
+                mapData.dimension,
+                mapData.scale),
             player);
         ModNetwork.CHANNEL.sendTo(new PacketFullAdvancedMapRefresh(held.getItemDamage(), mapData), player);
     }
 
-    private static void thisRecenterAroundPlayer(ItemStack itemStack, World world, EntityPlayerMP player, TFMagicMapData mapData) {
+    private static void thisRecenterAroundPlayer(ItemStack itemStack, World world, EntityPlayerMP player,
+        TFMagicMapData mapData) {
         int blocksPerPixel = 1 << mapData.scale;
         int thresholdBlocks = Math.max(blocksPerPixel, Config.advancedMapRecenterChunks * 16);
         int playerX = MathHelper.floor_double(player.posX);
@@ -88,10 +94,14 @@ public final class AdvancedMagicMapRefreshService {
         AdvancedMagicMapDataUtils.dedupeFeaturesInPlace(mapData.featuresVisibleOnMap);
 
         if (itemStack.getTagCompound() != null) {
-            itemStack.getTagCompound().setInteger("advCenterX", mapData.xCenter);
-            itemStack.getTagCompound().setInteger("advCenterZ", mapData.zCenter);
-            itemStack.getTagCompound().setInteger("advDimension", mapData.dimension);
-            itemStack.getTagCompound().setByte("advScale", mapData.scale);
+            itemStack.getTagCompound()
+                .setInteger("advCenterX", mapData.xCenter);
+            itemStack.getTagCompound()
+                .setInteger("advCenterZ", mapData.zCenter);
+            itemStack.getTagCompound()
+                .setInteger("advDimension", mapData.dimension);
+            itemStack.getTagCompound()
+                .setByte("advScale", mapData.scale);
         }
     }
 

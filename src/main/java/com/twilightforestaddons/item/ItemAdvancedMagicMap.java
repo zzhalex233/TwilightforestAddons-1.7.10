@@ -101,7 +101,9 @@ public class ItemAdvancedMagicMap extends ItemTFMagicMap {
         }
 
         NBTTagCompound tag = this.getOrCreateTag(itemStack);
-        tag.setInteger(TAG_AUTO_REFRESH_TICKS, Math.max(tag.getInteger(TAG_AUTO_REFRESH_TICKS), AUTO_REFRESH_DELAY_TICKS));
+        tag.setInteger(
+            TAG_AUTO_REFRESH_TICKS,
+            Math.max(tag.getInteger(TAG_AUTO_REFRESH_TICKS), AUTO_REFRESH_DELAY_TICKS));
         tag.setInteger(TAG_AUTO_REFRESH_WARMUP_TICKS, 0);
     }
 
@@ -330,7 +332,8 @@ public class ItemAdvancedMagicMap extends ItemTFMagicMap {
 
                     int chunkX = centerChunkX + dx;
                     int chunkZ = centerChunkZ + dz;
-                    if (world.getChunkProvider().chunkExists(chunkX, chunkZ)) {
+                    if (world.getChunkProvider()
+                        .chunkExists(chunkX, chunkZ)) {
                         continue;
                     }
 

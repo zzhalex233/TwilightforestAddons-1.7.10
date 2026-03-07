@@ -13,8 +13,8 @@ import com.twilightforestaddons.item.ItemAdvancedMagicMap;
 import com.twilightforestaddons.item.ModItems;
 import com.twilightforestaddons.network.packet.PacketTeleportToBossFeature;
 
-import twilightforest.TFMagicMapData;
 import twilightforest.TFFeature;
+import twilightforest.TFMagicMapData;
 import twilightforest.TwilightForestMod;
 
 public final class AdvancedMagicMapTeleportService {
@@ -41,7 +41,11 @@ public final class AdvancedMagicMapTeleportService {
             return;
         }
 
-        MapCoord targetCoord = findTargetCoord(mapData, message.getFeatureId(), message.getMapCoordX(), message.getMapCoordZ());
+        MapCoord targetCoord = findTargetCoord(
+            mapData,
+            message.getFeatureId(),
+            message.getMapCoordX(),
+            message.getMapCoordZ());
         if (targetCoord == null) {
             return;
         }
@@ -75,7 +79,8 @@ public final class AdvancedMagicMapTeleportService {
         if (Config.advancedMapAutoRefreshAfterTeleport && held.getItem() instanceof ItemAdvancedMagicMap) {
             ((ItemAdvancedMagicMap) held.getItem()).scheduleAutoRefresh(held);
         }
-        player.addChatMessage(new ChatComponentTranslation("message.twilightforestaddons.teleport", safeX, safeY, safeZ));
+        player
+            .addChatMessage(new ChatComponentTranslation("message.twilightforestaddons.teleport", safeX, safeY, safeZ));
     }
 
     private static MapCoord findTargetCoord(TFMagicMapData mapData, byte featureId, byte mapCoordX, byte mapCoordZ) {

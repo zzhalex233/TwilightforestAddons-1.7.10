@@ -13,7 +13,8 @@ public final class AdvancedMagicMapDataUtils {
 
     private AdvancedMagicMapDataUtils() {}
 
-    public static void shiftMapContent(TFMagicMapData mapData, int shiftXPixels, int shiftZPixels, boolean markDirtyEdges) {
+    public static void shiftMapContent(TFMagicMapData mapData, int shiftXPixels, int shiftZPixels,
+        boolean markDirtyEdges) {
         if (mapData == null || (shiftXPixels == 0 && shiftZPixels == 0)) {
             return;
         }
