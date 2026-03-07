@@ -13,73 +13,48 @@ public class PacketTeleportToBossFeature implements IMessage {
 
     private int mapId;
     private byte featureId;
-    private byte centerX;
-    private byte centerZ;
-    private int mapCenterX;
-    private int mapCenterZ;
-    private byte mapScale;
+    private byte mapCoordX;
+    private byte mapCoordZ;
 
     public PacketTeleportToBossFeature() {}
 
-    public PacketTeleportToBossFeature(int mapId, byte featureId, byte centerX, byte centerZ, int mapCenterX,
-        int mapCenterZ, byte mapScale) {
+    public PacketTeleportToBossFeature(int mapId, byte featureId, byte mapCoordX, byte mapCoordZ) {
         this.mapId = mapId;
         this.featureId = featureId;
-        this.centerX = centerX;
-        this.centerZ = centerZ;
-        this.mapCenterX = mapCenterX;
-        this.mapCenterZ = mapCenterZ;
-        this.mapScale = mapScale;
+        this.mapCoordX = mapCoordX;
+        this.mapCoordZ = mapCoordZ;
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
         this.mapId = buf.readInt();
         this.featureId = buf.readByte();
-        this.centerX = buf.readByte();
-        this.centerZ = buf.readByte();
-        this.mapCenterX = buf.readInt();
-        this.mapCenterZ = buf.readInt();
-        this.mapScale = buf.readByte();
+        this.mapCoordX = buf.readByte();
+        this.mapCoordZ = buf.readByte();
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
         buf.writeInt(this.mapId);
         buf.writeByte(this.featureId);
-        buf.writeByte(this.centerX);
-        buf.writeByte(this.centerZ);
-        buf.writeInt(this.mapCenterX);
-        buf.writeInt(this.mapCenterZ);
-        buf.writeByte(this.mapScale);
+        buf.writeByte(this.mapCoordX);
+        buf.writeByte(this.mapCoordZ);
     }
 
     public int getMapId() {
-        return mapId;
+        return this.mapId;
     }
 
     public byte getFeatureId() {
-        return featureId;
+        return this.featureId;
     }
 
-    public byte getCenterX() {
-        return centerX;
+    public byte getMapCoordX() {
+        return this.mapCoordX;
     }
 
-    public byte getCenterZ() {
-        return centerZ;
-    }
-
-    public int getMapCenterX() {
-        return mapCenterX;
-    }
-
-    public int getMapCenterZ() {
-        return mapCenterZ;
-    }
-
-    public byte getMapScale() {
-        return mapScale;
+    public byte getMapCoordZ() {
+        return this.mapCoordZ;
     }
 
     public static class Handler implements IMessageHandler<PacketTeleportToBossFeature, IMessage> {

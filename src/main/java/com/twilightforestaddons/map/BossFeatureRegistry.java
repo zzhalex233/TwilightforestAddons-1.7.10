@@ -11,6 +11,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.stats.Achievement;
 import net.minecraft.stats.StatFileWriter;
 import net.minecraft.stats.StatisticsFile;
+import net.minecraft.util.StatCollector;
 
 import twilightforest.TFAchievementPage;
 import twilightforest.TFFeature;
@@ -20,29 +21,71 @@ public final class BossFeatureRegistry {
     private static final Set<Byte> BOSS_FEATURE_IDS = new HashSet<Byte>();
     private static final Map<Byte, Achievement> REQUIRED_ACHIEVEMENTS = new HashMap<Byte, Achievement>();
     private static final Map<Byte, Achievement> COMPLETION_ACHIEVEMENTS = new HashMap<Byte, Achievement>();
+    private static final Map<Byte, String> FEATURE_TRANSLATION_KEYS = new HashMap<Byte, String>();
 
     static {
-        addFeature(TFFeature.nagaCourtyard, null, TFAchievementPage.twilightKillNaga);
-        addFeature(TFFeature.lichTower, TFAchievementPage.twilightKillNaga, TFAchievementPage.twilightKillLich);
-        addFeature(TFFeature.hydraLair, TFAchievementPage.twilightProgressLabyrinth, TFAchievementPage.twilightKillHydra);
-        addFeature(TFFeature.labyrinth, TFAchievementPage.twilightKillLich, TFAchievementPage.twilightProgressLabyrinth);
-        addFeature(TFFeature.darkTower, TFAchievementPage.twilightProgressKnights, TFAchievementPage.twilightProgressUrghast);
+        addFeature(
+            TFFeature.nagaCourtyard,
+            "feature.twilightforestaddons.naga_courtyard",
+            null,
+            TFAchievementPage.twilightKillNaga);
+        addFeature(
+            TFFeature.lichTower,
+            "feature.twilightforestaddons.lich_tower",
+            TFAchievementPage.twilightKillNaga,
+            TFAchievementPage.twilightKillLich);
+        addFeature(
+            TFFeature.hydraLair,
+            "feature.twilightforestaddons.hydra_lair",
+            TFAchievementPage.twilightProgressLabyrinth,
+            TFAchievementPage.twilightKillHydra);
+        addFeature(
+            TFFeature.labyrinth,
+            "feature.twilightforestaddons.labyrinth",
+            TFAchievementPage.twilightKillLich,
+            TFAchievementPage.twilightProgressLabyrinth);
+        addFeature(
+            TFFeature.darkTower,
+            "feature.twilightforestaddons.dark_tower",
+            TFAchievementPage.twilightProgressKnights,
+            TFAchievementPage.twilightProgressUrghast);
         addFeature(
             TFFeature.tfStronghold,
+            "feature.twilightforestaddons.knight_stronghold",
             TFAchievementPage.twilightProgressTrophyPedestal,
             TFAchievementPage.twilightProgressKnights);
-        addFeature(TFFeature.yetiCave, TFAchievementPage.twilightProgressUrghast, TFAchievementPage.twilightProgressYeti);
-        addFeature(TFFeature.iceTower, TFAchievementPage.twilightProgressYeti, TFAchievementPage.twilightProgressGlacier);
-        addFeature(TFFeature.trollCave, TFAchievementPage.twilightProgressGlacier, TFAchievementPage.twilightProgressTroll);
-        addFeature(TFFeature.finalCastle, null, TFAchievementPage.twilightProgressCastle);
+        addFeature(
+            TFFeature.yetiCave,
+            "feature.twilightforestaddons.yeti_cave",
+            TFAchievementPage.twilightProgressUrghast,
+            TFAchievementPage.twilightProgressYeti);
+        addFeature(
+            TFFeature.iceTower,
+            "feature.twilightforestaddons.ice_tower",
+            TFAchievementPage.twilightProgressYeti,
+            TFAchievementPage.twilightProgressGlacier);
+        addFeature(
+            TFFeature.trollCave,
+            "feature.twilightforestaddons.troll_cave",
+            TFAchievementPage.twilightProgressGlacier,
+            TFAchievementPage.twilightProgressTroll);
+        addFeature(
+            TFFeature.finalCastle,
+            "feature.twilightforestaddons.final_castle",
+            null,
+            TFAchievementPage.twilightProgressCastle);
     }
 
     private BossFeatureRegistry() {}
 
-    private static void addFeature(TFFeature feature, Achievement requiredAchievement, Achievement completionAchievement) {
+    private static void addFeature(TFFeature feature, String translationKey, Achievement requiredAchievement,
+        Achievement completionAchievement) {
         if (feature != null) {
             byte featureId = (byte) feature.featureID;
             BOSS_FEATURE_IDS.add(featureId);
+            if (translationKey != null && !translationKey.isEmpty()) {
+                FEATURE_TRANSLATION_KEYS.put(featureId, translationKey);
+            }
             if (requiredAchievement != null) {
                 REQUIRED_ACHIEVEMENTS.put(featureId, requiredAchievement);
             }
@@ -79,6 +122,15 @@ public final class BossFeatureRegistry {
         if (feature == null || feature.name == null || feature.name.isEmpty()) {
             return "Unknown";
         }
+
+        String translationKey = FEATURE_TRANSLATION_KEYS.get(featureId);
+        if (translationKey != null) {
+            String localized = StatCollector.translateToLocal(translationKey);
+            if (!translationKey.equals(localized)) {
+                return localized;
+            }
+        }
+
         return feature.name;
     }
 

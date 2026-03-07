@@ -28,9 +28,7 @@ public class ClientProxy extends CommonProxy {
                 .warn("TextureManager not ready, skipping advanced magic map renderer registration.");
             return;
         }
-        AdvancedMagicMapItemRenderer mapRenderer = new AdvancedMagicMapItemRenderer(
-            minecraft.gameSettings,
-            minecraft.getTextureManager());
+        AdvancedMagicMapItemRenderer mapRenderer = new AdvancedMagicMapItemRenderer();
         MinecraftForgeClient.registerItemRenderer(ModItems.advancedMagicMap, mapRenderer);
     }
 

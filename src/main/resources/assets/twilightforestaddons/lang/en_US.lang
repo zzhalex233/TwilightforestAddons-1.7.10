@@ -9,6 +9,7 @@ gui.twilightforestaddons.advanced_map.center=Center: X=%s Z=%s
 gui.twilightforestaddons.advanced_map.facing=Facing: %s
 gui.twilightforestaddons.advanced_map.cursor=Cursor: X=%s Z=%s
 gui.twilightforestaddons.advanced_map.locked=Progression locked
+gui.twilightforestaddons.advanced_map.refresh=Refresh
 
 gui.twilightforestaddons.direction.north=North
 gui.twilightforestaddons.direction.south=South
@@ -17,3 +18,14 @@ gui.twilightforestaddons.direction.east=East
 
 message.twilightforestaddons.teleport=Teleported to structure at X=%s Y=%s Z=%s
 message.twilightforestaddons.teleport_blocked_progress=Progression is not unlocked for %s yet
+
+feature.twilightforestaddons.naga_courtyard=Naga Courtyard
+feature.twilightforestaddons.lich_tower=Lich Tower
+feature.twilightforestaddons.hydra_lair=Hydra Lair
+feature.twilightforestaddons.labyrinth=Labyrinth
+feature.twilightforestaddons.dark_tower=Dark Tower
+feature.twilightforestaddons.knight_stronghold=Knight Stronghold
+feature.twilightforestaddons.yeti_cave=Yeti Cave
+feature.twilightforestaddons.ice_tower=Ice Tower
+feature.twilightforestaddons.troll_cave=Troll Cave
+feature.twilightforestaddons.final_castle=Final Castle

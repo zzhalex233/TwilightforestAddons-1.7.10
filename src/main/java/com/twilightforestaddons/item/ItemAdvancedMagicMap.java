@@ -1,7 +1,6 @@
 package com.twilightforestaddons.item;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
@@ -15,29 +14,37 @@ import net.minecraft.world.World;
 import com.twilightforestaddons.Config;
 import com.twilightforestaddons.TwilightForestAddons;
 import com.twilightforestaddons.map.AdvancedMagicMapDataUtils;
+import com.twilightforestaddons.map.AdvancedMagicMapRefreshService;
 import com.twilightforestaddons.network.ModNetwork;
 import com.twilightforestaddons.network.packet.PacketSyncAdvancedMapCenter;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import twilightforest.TFMagicMapData;
-import twilightforest.TwilightForestMod;
 import twilightforest.item.ItemTFMagicMap;
 
 public class ItemAdvancedMagicMap extends ItemTFMagicMap {
 
-    private static final Map<String, PassState> PASS_STATES = new HashMap<String, PassState>();
+    private static final String TAG_LAST_PLAYER_X = "advLastPlayerX";
+    private static final String TAG_LAST_PLAYER_Z = "advLastPlayerZ";
+    private static final String TAG_PENDING_REFRESH_PASSES = "advPendingRefreshPasses";
+    private static final String TAG_DELAYED_REFRESH_PASSES = "advDelayedRefreshPasses";
+    private static final String TAG_DELAYED_REFRESH_TICKS = "advDelayedRefreshTicks";
+    private static final String TAG_AUTO_REFRESH_TICKS = "advAutoRefreshTicks";
+    private static final String TAG_AUTO_REFRESH_WARMUP_TICKS = "advAutoRefreshWarmupTicks";
 
-    private static final String TAG_LAST_SYNC_X = "advLastSyncX";
-    private static final String TAG_LAST_SYNC_Z = "advLastSyncZ";
-    private static final String TAG_LAST_SYNC_DIM = "advLastSyncDim";
-    private static final String TAG_LAST_SYNC_SCALE = "advLastSyncScale";
+    private static final int RECENTER_NONE = 0;
+    private static final int RECENTER_SHIFT = 1;
+    private static final int RECENTER_CLEAR = 2;
 
-    private static final int MAP_SIZE_PIXELS = 128;
-    private static final int MAX_EXTRA_PASSES_PER_TICK = 24;
-    private static final int MAX_GAP_FILL_PASSES_PER_TICK = 32;
-    private static final int MAX_PENDING_EXTRA_PASSES = 48;
-    private static final int MIN_SPEED_PIXELS_FOR_BONUS = 2;
+    private static final int TELEPORT_DETECT_BLOCKS = 96;
+    private static final int MAX_REUSE_SHIFT_PIXELS = 96;
+    private static final int MAX_PENDING_REFRESH_PASSES = 12;
+    private static final int MAX_EXTRA_PASSES_PER_TICK = 3;
+    private static final int AUTO_REFRESH_DELAY_TICKS = 8;
+    private static final int AUTO_REFRESH_CHUNK_RADIUS = 1;
+    private static final int AUTO_REFRESH_CHUNK_LOADS_PER_TICK = 2;
+    private static final int AUTO_REFRESH_MAX_WARMUP_TICKS = 40;
 
     public ItemAdvancedMagicMap() {
         this.maxStackSize = 1;
@@ -53,201 +60,96 @@ public class ItemAdvancedMagicMap extends ItemTFMagicMap {
 
     @Override
     public void onUpdate(ItemStack itemStack, World world, Entity entity, int slot, boolean isHeld) {
-        TFMagicMapData mapData = null;
-        EntityPlayer player = null;
-        PassState passState = null;
-        boolean shouldTrack = false;
-
-        if (!world.isRemote && entity instanceof EntityPlayer && world.provider.dimensionId == TwilightForestMod.dimensionID) {
-            player = (EntityPlayer) entity;
-            mapData = this.getMapData(itemStack, world);
-
-            if (mapData != null) {
-                boolean equipped = player.getCurrentEquippedItem() == itemStack;
-                shouldTrack = isHeld || equipped;
-
-                if (shouldTrack) {
-                    passState = getPassState(world, itemStack);
-                    int budgetFromShift = recenterIfNeeded(itemStack, player, world, mapData, passState);
-                    addPendingPasses(passState, budgetFromShift);
-                    this.updateMapData(world, entity, mapData);
-                }
-            }
-        }
-
-        super.onUpdate(itemStack, world, entity, slot, false);
-
-        if (passState == null || mapData == null || player == null) {
+        if (world.isRemote || !(entity instanceof EntityPlayer)) {
             return;
         }
 
-        addSpeedBudget(passState, player, mapData);
-        if (hasCoverageGapNearPlayer(mapData, player)) {
-            addPendingPasses(passState, 1);
+        EntityPlayer player = (EntityPlayer) entity;
+        TFMagicMapData mapData = this.getMapData(itemStack, world);
+        if (mapData == null) {
+            return;
         }
 
-        runExtraPasses(world, entity, mapData, passState);
-        runGapFillPasses(world, entity, mapData, player);
-        dedupeFeatures(mapData);
-        writeCenterToStack(itemStack, mapData);
+        mapData.updateVisiblePlayers(player, itemStack);
+        MovementProfile movement = this.trackMovement(itemStack, player);
 
-        if (player instanceof EntityPlayerMP && shouldSyncCenter(itemStack, mapData)) {
-            syncCenterToClient((EntityPlayerMP) player, itemStack, mapData);
-            recordSyncedCenter(itemStack, mapData);
+        if (!isHeld) {
+            this.syncCenterIfNeeded(itemStack, mapData, player);
+            return;
         }
+
+        if (this.tryRunAutoRefresh(itemStack, world, player)) {
+            return;
+        }
+
+        this.tickDelayedRefresh(itemStack);
+        int recenterMode = this.recenterIfNeeded(world, player, mapData);
+        this.scheduleRecoveryIfNeeded(itemStack, movement, recenterMode);
+
+        this.updateMapData(world, entity, mapData);
+        int extraPasses = this.consumePendingRefreshPasses(itemStack);
+        for (int i = 0; i < extraPasses; i++) {
+            this.updateMapData(world, entity, mapData);
+        }
+        AdvancedMagicMapDataUtils.dedupeFeaturesInPlace(mapData.featuresVisibleOnMap);
+        this.syncCenterIfNeeded(itemStack, mapData, player);
     }
 
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void registerIcons(IIconRegister iconRegister) {
-        this.itemIcon = iconRegister.registerIcon("TwilightForest:magicMap");
+    public void scheduleAutoRefresh(ItemStack itemStack) {
+        if (itemStack == null || !Config.advancedMapAutoRefreshAfterTeleport) {
+            return;
+        }
+
+        NBTTagCompound tag = this.getOrCreateTag(itemStack);
+        tag.setInteger(TAG_AUTO_REFRESH_TICKS, Math.max(tag.getInteger(TAG_AUTO_REFRESH_TICKS), AUTO_REFRESH_DELAY_TICKS));
+        tag.setInteger(TAG_AUTO_REFRESH_WARMUP_TICKS, 0);
     }
 
-    private int recenterIfNeeded(ItemStack itemStack, EntityPlayer player, World world, TFMagicMapData mapData,
-        PassState passState) {
-        int recenterBlocks = Math.max(1, Config.advancedMapRecenterChunks) << 4;
+    private int recenterIfNeeded(World world, EntityPlayer player, TFMagicMapData mapData) {
         int blocksPerPixel = 1 << mapData.scale;
-        int targetCenterX = MathHelper.floor_double(player.posX);
-        int targetCenterZ = MathHelper.floor_double(player.posZ);
-        int dx = targetCenterX - mapData.xCenter;
-        int dz = targetCenterZ - mapData.zCenter;
+        int thresholdBlocks = Math.max(blocksPerPixel, Config.advancedMapRecenterChunks * 16);
+        int playerX = MathHelper.floor_double(player.posX);
+        int playerZ = MathHelper.floor_double(player.posZ);
 
-        if (Math.abs(dx) < recenterBlocks && Math.abs(dz) < recenterBlocks) {
-            return 0;
+        if (Math.abs(playerX - mapData.xCenter) < thresholdBlocks
+            && Math.abs(playerZ - mapData.zCenter) < thresholdBlocks) {
+            return RECENTER_NONE;
         }
 
-        int shiftXPixels = dx >> mapData.scale;
-        int shiftZPixels = dz >> mapData.scale;
+        int desiredCenterX = snapToPixel(player.posX, blocksPerPixel);
+        int desiredCenterZ = snapToPixel(player.posZ, blocksPerPixel);
+        int shiftXPixels = (desiredCenterX - mapData.xCenter) >> mapData.scale;
+        int shiftZPixels = (desiredCenterZ - mapData.zCenter) >> mapData.scale;
         if (shiftXPixels == 0 && shiftZPixels == 0) {
-            return 0;
+            return RECENTER_NONE;
         }
 
-        AdvancedMagicMapDataUtils.shiftMapContent(mapData, shiftXPixels, shiftZPixels, true);
-        shiftPassState(passState, shiftXPixels, shiftZPixels);
-        mapData.xCenter += shiftXPixels * blocksPerPixel;
-        mapData.zCenter += shiftZPixels * blocksPerPixel;
+        int shiftDistancePixels = Math.max(Math.abs(shiftXPixels), Math.abs(shiftZPixels));
+        int recenterMode = shiftDistancePixels > MAX_REUSE_SHIFT_PIXELS ? RECENTER_CLEAR : RECENTER_SHIFT;
+        if (recenterMode == RECENTER_CLEAR) {
+            this.clearMapData(mapData);
+        } else {
+            AdvancedMagicMapDataUtils.shiftMapContent(mapData, shiftXPixels, shiftZPixels, true);
+        }
+
+        mapData.xCenter = desiredCenterX;
+        mapData.zCenter = desiredCenterZ;
         mapData.dimension = world.provider.dimensionId;
-        writeCenterToStack(itemStack, mapData);
         mapData.markDirty();
-
-        return estimateShiftBudget(shiftXPixels, shiftZPixels);
+        AdvancedMagicMapDataUtils.dedupeFeaturesInPlace(mapData.featuresVisibleOnMap);
+        return recenterMode;
     }
 
-    private int estimateShiftBudget(int shiftXPixels, int shiftZPixels) {
-        int primaryShift = Math.max(Math.abs(shiftXPixels), Math.abs(shiftZPixels));
-        int secondaryShift = Math.min(Math.abs(shiftXPixels), Math.abs(shiftZPixels));
-        return Math.min(MAX_PENDING_EXTRA_PASSES, Math.max(4, primaryShift + secondaryShift));
-    }
-
-    private void shiftPassState(PassState passState, int shiftXPixels, int shiftZPixels) {
-        if (passState == null) {
-            return;
-        }
-
-        if (passState.lastPlayerPixelX != Integer.MIN_VALUE) {
-            passState.lastPlayerPixelX -= shiftXPixels;
-        }
-        if (passState.lastPlayerPixelZ != Integer.MIN_VALUE) {
-            passState.lastPlayerPixelZ -= shiftZPixels;
+    private void clearMapData(TFMagicMapData mapData) {
+        Arrays.fill(mapData.colors, (byte) 0);
+        mapData.featuresVisibleOnMap.clear();
+        for (int x = 0; x < 128; x++) {
+            mapData.setColumnDirty(x, 0, 127);
         }
     }
 
-    private void addSpeedBudget(PassState passState, EntityPlayer player, TFMagicMapData mapData) {
-        int playerPixelX = getPlayerPixelX(mapData, player);
-        int playerPixelZ = getPlayerPixelZ(mapData, player);
-
-        if (passState.lastPlayerPixelX != Integer.MIN_VALUE && passState.lastPlayerPixelZ != Integer.MIN_VALUE) {
-            int dx = Math.abs(playerPixelX - passState.lastPlayerPixelX);
-            int dz = Math.abs(playerPixelZ - passState.lastPlayerPixelZ);
-            int delta = Math.max(dx, dz);
-            if (delta >= MIN_SPEED_PIXELS_FOR_BONUS) {
-                addPendingPasses(passState, Math.min(2, delta - 1));
-            }
-        }
-
-        passState.lastPlayerPixelX = playerPixelX;
-        passState.lastPlayerPixelZ = playerPixelZ;
-    }
-
-    private boolean hasCoverageGapNearPlayer(TFMagicMapData mapData, EntityPlayer player) {
-        int playerPixelX = getPlayerPixelX(mapData, player);
-        int playerPixelZ = getPlayerPixelZ(mapData, player);
-        int radius = getVisibleRadiusPixels(mapData);
-        int radiusSq = radius * radius;
-
-        int minX = Math.max(0, playerPixelX - radius);
-        int maxX = Math.min(MAP_SIZE_PIXELS - 1, playerPixelX + radius);
-        int minZ = Math.max(0, playerPixelZ - radius);
-        int maxZ = Math.min(MAP_SIZE_PIXELS - 1, playerPixelZ + radius);
-
-        for (int x = minX; x <= maxX; x++) {
-            int dx = x - playerPixelX;
-            for (int z = minZ; z <= maxZ; z++) {
-                int dz = z - playerPixelZ;
-                if (dx * dx + dz * dz > radiusSq) {
-                    continue;
-                }
-
-                if (mapData.colors[x + z * MAP_SIZE_PIXELS] == 0) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private void runExtraPasses(World world, Entity entity, TFMagicMapData mapData, PassState passState) {
-        int passes = Math.min(MAX_EXTRA_PASSES_PER_TICK, passState.pendingExtraPasses);
-        for (int i = 0; i < passes; i++) {
-            this.updateMapData(world, entity, mapData);
-        }
-        passState.pendingExtraPasses -= passes;
-    }
-
-    private void runGapFillPasses(World world, Entity entity, TFMagicMapData mapData, EntityPlayer player) {
-        for (int i = 0; i < MAX_GAP_FILL_PASSES_PER_TICK; i++) {
-            if (!hasCoverageGapNearPlayer(mapData, player)) {
-                break;
-            }
-            this.updateMapData(world, entity, mapData);
-        }
-    }
-
-    private void addPendingPasses(PassState passState, int passes) {
-        if (passState == null || passes <= 0) {
-            return;
-        }
-
-        passState.pendingExtraPasses = Math.min(MAX_PENDING_EXTRA_PASSES, passState.pendingExtraPasses + passes);
-    }
-
-    private int getPlayerPixelX(TFMagicMapData mapData, EntityPlayer player) {
-        int blocksPerPixel = 1 << mapData.scale;
-        return MathHelper.floor_double((player.posX - mapData.xCenter) / blocksPerPixel) + MAP_SIZE_PIXELS / 2;
-    }
-
-    private int getPlayerPixelZ(TFMagicMapData mapData, EntityPlayer player) {
-        int blocksPerPixel = 1 << mapData.scale;
-        return MathHelper.floor_double((player.posZ - mapData.zCenter) / blocksPerPixel) + MAP_SIZE_PIXELS / 2;
-    }
-
-    private int getVisibleRadiusPixels(TFMagicMapData mapData) {
-        return Math.max(1, 512 / (1 << mapData.scale));
-    }
-
-    private PassState getPassState(World world, ItemStack itemStack) {
-        String key = world.provider.dimensionId + ":" + itemStack.getItemDamage();
-        PassState passState = PASS_STATES.get(key);
-        if (passState == null) {
-            passState = new PassState();
-            PASS_STATES.put(key, passState);
-        }
-        return passState;
-    }
-
-    private void syncCenterToClient(EntityPlayerMP player, ItemStack itemStack, TFMagicMapData mapData) {
-        if (player == null || itemStack == null || mapData == null) {
+    private void syncCenterIfNeeded(ItemStack itemStack, TFMagicMapData mapData, EntityPlayer player) {
+        if (!(player instanceof EntityPlayerMP) || !this.shouldSyncCenter(itemStack, mapData)) {
             return;
         }
 
@@ -258,55 +160,212 @@ public class ItemAdvancedMagicMap extends ItemTFMagicMap {
                 mapData.zCenter,
                 mapData.dimension,
                 mapData.scale),
-            player);
+            (EntityPlayerMP) player);
+        this.writeCenterToStack(itemStack, mapData);
     }
 
     private boolean shouldSyncCenter(ItemStack itemStack, TFMagicMapData mapData) {
-        NBTTagCompound tag = itemStack.getTagCompound();
-        if (tag == null) {
-            return true;
-        }
-
-        return !tag.hasKey(TAG_LAST_SYNC_X) || !tag.hasKey(TAG_LAST_SYNC_Z) || !tag.hasKey(TAG_LAST_SYNC_DIM)
-            || !tag.hasKey(TAG_LAST_SYNC_SCALE) || tag.getInteger(TAG_LAST_SYNC_X) != mapData.xCenter
-            || tag.getInteger(TAG_LAST_SYNC_Z) != mapData.zCenter
-            || tag.getInteger(TAG_LAST_SYNC_DIM) != mapData.dimension
-            || tag.getByte(TAG_LAST_SYNC_SCALE) != mapData.scale;
-    }
-
-    private void recordSyncedCenter(ItemStack itemStack, TFMagicMapData mapData) {
-        NBTTagCompound tag = itemStack.getTagCompound();
-        if (tag == null) {
-            tag = new NBTTagCompound();
-            itemStack.setTagCompound(tag);
-        }
-
-        tag.setInteger(TAG_LAST_SYNC_X, mapData.xCenter);
-        tag.setInteger(TAG_LAST_SYNC_Z, mapData.zCenter);
-        tag.setInteger(TAG_LAST_SYNC_DIM, mapData.dimension);
-        tag.setByte(TAG_LAST_SYNC_SCALE, mapData.scale);
-    }
-
-    private void dedupeFeatures(TFMagicMapData mapData) {
-        AdvancedMagicMapDataUtils.dedupeFeaturesInPlace(mapData.featuresVisibleOnMap);
+        NBTTagCompound tag = this.getOrCreateTag(itemStack);
+        return tag.getInteger("advCenterX") != mapData.xCenter || tag.getInteger("advCenterZ") != mapData.zCenter
+            || tag.getInteger("advDimension") != mapData.dimension
+            || tag.getByte("advScale") != mapData.scale;
     }
 
     private void writeCenterToStack(ItemStack itemStack, TFMagicMapData mapData) {
-        NBTTagCompound tag = itemStack.getTagCompound();
-        if (tag == null) {
-            tag = new NBTTagCompound();
-            itemStack.setTagCompound(tag);
-        }
+        NBTTagCompound tag = this.getOrCreateTag(itemStack);
         tag.setInteger("advCenterX", mapData.xCenter);
         tag.setInteger("advCenterZ", mapData.zCenter);
         tag.setInteger("advDimension", mapData.dimension);
         tag.setByte("advScale", mapData.scale);
     }
 
-    private static final class PassState {
+    private NBTTagCompound getOrCreateTag(ItemStack itemStack) {
+        if (itemStack.getTagCompound() == null) {
+            itemStack.setTagCompound(new NBTTagCompound());
+        }
+        return itemStack.getTagCompound();
+    }
 
-        private int pendingExtraPasses;
-        private int lastPlayerPixelX = Integer.MIN_VALUE;
-        private int lastPlayerPixelZ = Integer.MIN_VALUE;
+    private MovementProfile trackMovement(ItemStack itemStack, EntityPlayer player) {
+        NBTTagCompound tag = this.getOrCreateTag(itemStack);
+        int currentX = MathHelper.floor_double(player.posX);
+        int currentZ = MathHelper.floor_double(player.posZ);
+        boolean hasPrevious = tag.hasKey(TAG_LAST_PLAYER_X) && tag.hasKey(TAG_LAST_PLAYER_Z);
+        int deltaX = hasPrevious ? currentX - tag.getInteger(TAG_LAST_PLAYER_X) : 0;
+        int deltaZ = hasPrevious ? currentZ - tag.getInteger(TAG_LAST_PLAYER_Z) : 0;
+
+        tag.setInteger(TAG_LAST_PLAYER_X, currentX);
+        tag.setInteger(TAG_LAST_PLAYER_Z, currentZ);
+
+        boolean teleportDetected = hasPrevious
+            && (Math.abs(deltaX) >= TELEPORT_DETECT_BLOCKS || Math.abs(deltaZ) >= TELEPORT_DETECT_BLOCKS);
+        return new MovementProfile(deltaX, deltaZ, teleportDetected);
+    }
+
+    private void scheduleRecoveryIfNeeded(ItemStack itemStack, MovementProfile movement, int recenterMode) {
+        if (recenterMode == RECENTER_NONE && (movement == null || !movement.teleportDetected)) {
+            return;
+        }
+
+        if (recenterMode == RECENTER_CLEAR) {
+            this.addPendingRefreshPasses(itemStack, 6);
+            this.setDelayedRefresh(itemStack, 8, 6);
+            return;
+        }
+
+        if (recenterMode == RECENTER_SHIFT) {
+            this.addPendingRefreshPasses(itemStack, 4);
+            this.setDelayedRefresh(itemStack, 6, 4);
+            return;
+        }
+
+        if (movement != null && movement.teleportDetected) {
+            this.addPendingRefreshPasses(itemStack, 3);
+            this.setDelayedRefresh(itemStack, 5, 3);
+        }
+    }
+
+    private void tickDelayedRefresh(ItemStack itemStack) {
+        NBTTagCompound tag = this.getOrCreateTag(itemStack);
+        int remainingTicks = tag.getInteger(TAG_DELAYED_REFRESH_TICKS);
+        if (remainingTicks <= 0) {
+            return;
+        }
+
+        remainingTicks--;
+        if (remainingTicks <= 0) {
+            this.addPendingRefreshPasses(itemStack, tag.getInteger(TAG_DELAYED_REFRESH_PASSES));
+            tag.setInteger(TAG_DELAYED_REFRESH_PASSES, 0);
+            tag.setInteger(TAG_DELAYED_REFRESH_TICKS, 0);
+        } else {
+            tag.setInteger(TAG_DELAYED_REFRESH_TICKS, remainingTicks);
+        }
+    }
+
+    private void setDelayedRefresh(ItemStack itemStack, int ticks, int passes) {
+        if (ticks <= 0 || passes <= 0) {
+            return;
+        }
+
+        NBTTagCompound tag = this.getOrCreateTag(itemStack);
+        tag.setInteger(TAG_DELAYED_REFRESH_TICKS, Math.max(tag.getInteger(TAG_DELAYED_REFRESH_TICKS), ticks));
+        tag.setInteger(
+            TAG_DELAYED_REFRESH_PASSES,
+            Math.min(MAX_PENDING_REFRESH_PASSES, tag.getInteger(TAG_DELAYED_REFRESH_PASSES) + passes));
+    }
+
+    private void addPendingRefreshPasses(ItemStack itemStack, int passes) {
+        if (passes <= 0) {
+            return;
+        }
+
+        NBTTagCompound tag = this.getOrCreateTag(itemStack);
+        tag.setInteger(
+            TAG_PENDING_REFRESH_PASSES,
+            Math.min(MAX_PENDING_REFRESH_PASSES, tag.getInteger(TAG_PENDING_REFRESH_PASSES) + passes));
+    }
+
+    private int consumePendingRefreshPasses(ItemStack itemStack) {
+        NBTTagCompound tag = this.getOrCreateTag(itemStack);
+        int pending = tag.getInteger(TAG_PENDING_REFRESH_PASSES);
+        if (pending <= 0) {
+            return 0;
+        }
+
+        int consumed = Math.min(MAX_EXTRA_PASSES_PER_TICK, pending);
+        tag.setInteger(TAG_PENDING_REFRESH_PASSES, pending - consumed);
+        return consumed;
+    }
+
+    private boolean tryRunAutoRefresh(ItemStack itemStack, World world, EntityPlayer player) {
+        if (!Config.advancedMapAutoRefreshAfterTeleport || !(player instanceof EntityPlayerMP)) {
+            return false;
+        }
+
+        NBTTagCompound tag = this.getOrCreateTag(itemStack);
+        int remainingTicks = tag.getInteger(TAG_AUTO_REFRESH_TICKS);
+        if (remainingTicks <= 0) {
+            return false;
+        }
+
+        remainingTicks--;
+        if (remainingTicks > 0) {
+            tag.setInteger(TAG_AUTO_REFRESH_TICKS, remainingTicks);
+            return false;
+        }
+
+        int warmupTicks = tag.getInteger(TAG_AUTO_REFRESH_WARMUP_TICKS);
+        boolean readyToRefresh = this.prewarmRefreshChunks(world, player);
+        if (!readyToRefresh && warmupTicks < AUTO_REFRESH_MAX_WARMUP_TICKS) {
+            tag.setInteger(TAG_AUTO_REFRESH_WARMUP_TICKS, warmupTicks + 1);
+            return false;
+        }
+
+        tag.setInteger(TAG_AUTO_REFRESH_TICKS, 0);
+        tag.setInteger(TAG_AUTO_REFRESH_WARMUP_TICKS, 0);
+        AdvancedMagicMapRefreshService.handleRefreshRequest((EntityPlayerMP) player, itemStack.getItemDamage());
+        TFMagicMapData refreshedData = this.getMapData(itemStack, world);
+        if (refreshedData != null) {
+            this.writeCenterToStack(itemStack, refreshedData);
+        }
+        return true;
+    }
+
+    private boolean prewarmRefreshChunks(World world, EntityPlayer player) {
+        if (world == null || player == null) {
+            return true;
+        }
+
+        int centerChunkX = MathHelper.floor_double(player.posX) >> 4;
+        int centerChunkZ = MathHelper.floor_double(player.posZ) >> 4;
+        int chunkLoads = 0;
+        boolean allReady = true;
+
+        for (int radius = 0; radius <= AUTO_REFRESH_CHUNK_RADIUS; radius++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                for (int dx = -radius; dx <= radius; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
+                        continue;
+                    }
+
+                    int chunkX = centerChunkX + dx;
+                    int chunkZ = centerChunkZ + dz;
+                    if (world.getChunkProvider().chunkExists(chunkX, chunkZ)) {
+                        continue;
+                    }
+
+                    allReady = false;
+                    if (chunkLoads < AUTO_REFRESH_CHUNK_LOADS_PER_TICK) {
+                        world.getChunkFromChunkCoords(chunkX, chunkZ);
+                        chunkLoads++;
+                    }
+                }
+            }
+        }
+
+        return allReady;
+    }
+
+    private static int snapToPixel(double coord, int blocksPerPixel) {
+        return MathHelper.floor_double(coord / blocksPerPixel) * blocksPerPixel;
+    }
+
+    private static final class MovementProfile {
+
+        private final int deltaX;
+        private final int deltaZ;
+        private final boolean teleportDetected;
+
+        private MovementProfile(int deltaX, int deltaZ, boolean teleportDetected) {
+            this.deltaX = deltaX;
+            this.deltaZ = deltaZ;
+            this.teleportDetected = teleportDetected;
+        }
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void registerIcons(IIconRegister iconRegister) {
+        this.itemIcon = iconRegister.registerIcon("TwilightForest:magicMap");
     }
 }

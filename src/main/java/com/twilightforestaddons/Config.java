@@ -9,6 +9,7 @@ public class Config {
     public static String greeting = "Twilight Forest Addons loaded.";
     public static int advancedMapRecenterChunks = 3;
     public static boolean advancedMapEnforceProgression = true;
+    public static boolean advancedMapAutoRefreshAfterTeleport = true;
 
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
@@ -26,6 +27,11 @@ public class Config {
             Configuration.CATEGORY_GENERAL,
             advancedMapEnforceProgression,
             "If true, Advanced Magic Map teleportation respects Twilight Forest progression requirements.");
+        advancedMapAutoRefreshAfterTeleport = configuration.getBoolean(
+            "advancedMapAutoRefreshAfterTeleport",
+            Configuration.CATEGORY_GENERAL,
+            advancedMapAutoRefreshAfterTeleport,
+            "If true, teleporting with the Advanced Magic Map schedules one automatic map refresh shortly after arrival.");
 
         if (configuration.hasChanged()) {
             configuration.save();

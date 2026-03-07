@@ -17,3 +17,14 @@ gui.twilightforestaddons.direction.east=东
 
 message.twilightforestaddons.teleport=已传送到结构坐标 X=%s Y=%s Z=%s
 message.twilightforestaddons.teleport_blocked_progress=尚未解锁该结构进度：%s
+feature.twilightforestaddons.naga_courtyard=娜迦庭院
+feature.twilightforestaddons.lich_tower=巫妖塔
+feature.twilightforestaddons.hydra_lair=九头蛇巢穴
+feature.twilightforestaddons.labyrinth=米诺陶迷宫
+feature.twilightforestaddons.dark_tower=黑暗高塔
+feature.twilightforestaddons.knight_stronghold=骑士要塞
+feature.twilightforestaddons.yeti_cave=雪怪洞穴
+feature.twilightforestaddons.ice_tower=冰雪高塔
+feature.twilightforestaddons.troll_cave=巨魔洞穴
+feature.twilightforestaddons.final_castle=终焉城堡
+gui.twilightforestaddons.advanced_map.refresh=刷新
