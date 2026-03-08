@@ -1,0 +1,29 @@
+item.twilightforestaddons.advanced_empty_magic_map.name=高级空白魔法地图
+item.twilightforestaddons.advanced_magic_map.name=高级魔法地图
+
+gui.twilightforestaddons.advanced_map.title=高级魔法地图
+gui.twilightforestaddons.advanced_map.loading=正在加载高级魔法地图...
+gui.twilightforestaddons.advanced_map.hint=右键关闭
+gui.twilightforestaddons.advanced_map.center=中心: %s, %s
+gui.twilightforestaddons.advanced_map.facing=朝向: %s
+gui.twilightforestaddons.advanced_map.cursor=光标: %s, %s
+gui.twilightforestaddons.advanced_map.target=目标: %s
+
+gui.twilightforestaddons.direction.south=南
+gui.twilightforestaddons.direction.west=西
+gui.twilightforestaddons.direction.north=北
+gui.twilightforestaddons.direction.east=东
+
+message.twilightforestaddons.teleport=已传送到 %s, %s, %s
+message.twilightforestaddons.teleport_blocked_progress=你尚未解锁 %s。
+
+feature.twilightforestaddons.naga_courtyard=娜迦庭院
+feature.twilightforestaddons.lich_tower=巫妖塔
+feature.twilightforestaddons.hydra_lair=九头蛇巢穴
+feature.twilightforestaddons.labyrinth=牛头人迷宫
+feature.twilightforestaddons.dark_tower=黑暗高塔
+feature.twilightforestaddons.knight_stronghold=骑士要塞
+feature.twilightforestaddons.yeti_lairs=雪怪洞穴
+feature.twilightforestaddons.ice_tower=冰雪高塔
+feature.twilightforestaddons.troll_lairs=巨魔洞穴
+feature.twilightforestaddons.final_castle=终焉城堡

@@ -1,0 +1,32 @@
+item.twilightforestaddons.advanced_empty_magic_map.name=Advanced Empty Magic Map
+item.twilightforestaddons.advanced_magic_map.name=Advanced Magic Map
+
+gui.twilightforestaddons.advanced_map.title=Advanced Magic Map
+gui.twilightforestaddons.advanced_map.loading=Loading advanced magic map...
+gui.twilightforestaddons.advanced_map.hint=Right-click to close
+gui.twilightforestaddons.advanced_map.center=Center: %s, %s
+gui.twilightforestaddons.advanced_map.facing=Facing: %s
+gui.twilightforestaddons.advanced_map.cursor=Cursor: %s, %s
+gui.twilightforestaddons.advanced_map.target=Target: %s
+
+gui.twilightforestaddons.direction.south=South
+gui.twilightforestaddons.direction.west=West
+gui.twilightforestaddons.direction.north=North
+gui.twilightforestaddons.direction.east=East
+
+message.twilightforestaddons.teleport=Teleported to %s, %s, %s
+message.twilightforestaddons.teleport_blocked_progress=You have not unlocked %s yet.
+
+feature.twilightforestaddons.naga_courtyard=Naga Courtyard
+feature.twilightforestaddons.lich_tower=Lich Tower
+feature.twilightforestaddons.hydra_lair=Hydra Lair
+feature.twilightforestaddons.labyrinth=Labyrinth
+feature.twilightforestaddons.dark_tower=Dark Tower
+feature.twilightforestaddons.knight_stronghold=Knight Stronghold
+feature.twilightforestaddons.yeti_lairs=Yeti Cave
+feature.twilightforestaddons.ice_tower=Ice Tower
+feature.twilightforestaddons.troll_lairs=Troll Cave
+feature.twilightforestaddons.final_castle=Final Castle
+message.twilightforestaddons.teleport_failed_map=Hold the same Advanced Magic Map in your main hand to teleport.
+message.twilightforestaddons.teleport_failed_dimension=Teleport is only available in the Twilight Forest.
+message.twilightforestaddons.teleport_failed_target=Could not resolve that boss target from the map.
