@@ -88,7 +88,7 @@ public class AdvancedMagicMapItemRenderer {
         float offsetZ = getDisplayOffsetZ(player, mapData);
 
         for (TFMagicMapData.TFMapDecoration decoration : mapData.tfDecorations) {
-            if (!shouldRenderDecoration(mapData, decoration)) {
+            if (!shouldRenderBossHover(mapData, decoration)) {
                 continue;
             }
 
@@ -215,13 +215,16 @@ public class AdvancedMagicMapItemRenderer {
     }
 
     private boolean shouldRenderDecoration(TFMagicMapData mapData, TFMagicMapData.TFMapDecoration decoration) {
-        if (decoration == null) {
+        return decoration != null && hasExploredPixelNear(mapData, getDecorationMapX(decoration), getDecorationMapY(decoration));
+    }
+
+    private boolean shouldRenderBossHover(TFMagicMapData mapData, TFMagicMapData.TFMapDecoration decoration) {
+        if (!shouldRenderDecoration(mapData, decoration)) {
             return false;
         }
 
         int featureId = AdvancedMagicMapDataUtils.getFeatureId(decoration);
-        return BossFeatureRegistry.isBossFeature(featureId)
-            && hasExploredPixelNear(mapData, getDecorationMapX(decoration), getDecorationMapY(decoration));
+        return BossFeatureRegistry.isBossFeature(featureId);
     }
 
     private boolean isWithinVisibleMap(float drawX, float drawY) {
