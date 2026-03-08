@@ -1,3 +1,5 @@
+.github
+libs/
 .gradle
 **/build/
 !src/**/build/

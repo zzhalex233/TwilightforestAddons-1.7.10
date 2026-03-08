@@ -1,38 +1,35 @@
-# Twilight Forest Addons
+﻿# Twilight Forest Addons for Minecraft 1.12.2
 
-A Forge 1.12.2 addon project for The Twilight Forest.
+An addon for The Twilight Forest focused on better map-based exploration and boss travel on Minecraft 1.12.2 Forge.
 
-## Overview
+简体中文| [English](#english)
 
-This workspace is the porting baseline for `twilightforestaddons` on Minecraft 1.12.2.
-It is initialized with the target package, mod metadata, proxy structure, and a clean Gradle setup.
+## 简体中文
 
-## Current Baseline
+本mod是1.12.2的暮色森林附属模组，核心目标是增强魔法地图的探索与传送体验。
 
-- Mod ID: `twilightforestaddons`
-- Mod Name: `Twilight Forest Addons`
-- Root package: `com.zzhalex233.twilightforestaddons`
-- Minecraft: `1.12.2`
-- Loader target: Forge / Cleanroom 1.12.2 template
-- Twilight Forest is declared as a required runtime dependency in the main mod class
+### 内容
 
-## Project Structure
+- 高级魔法地图
+- 可交互的地图GUI
+- 点击Boss图标传送
+- 可选的暮色进度限制（禁止传送至进度没到的boss）
+- 安全传送（祖传
+- 强大的地图渲染刷新
 
-- Main mod entry: `src/main/java/com/zzhalex233/twilightforestaddons/TwilightForestAddons.java`
-- Proxies: `src/main/java/com/zzhalex233/twilightforestaddons/proxy/`
-- Metadata: `src/main/resources/mcmod.info`
-- Dependency setup: `gradle/scripts/dependencies.gradle`
+本mod需要暮色森林作为前置
 
-## Next Porting Steps
+## English
 
-1. Add the exact Twilight Forest 1.12.2 dependency in `gradle/scripts/dependencies.gradle`.
-2. Port item, GUI, map, network, and teleport systems module by module.
-3. Re-validate client and dedicated server startup after each subsystem lands.
+This mod adds an advanced magic map system on top of Twilight Forest's original magic map mechanics.
 
-## Development
+### Features
 
-```powershell
-.\gradlew.bat runClient
-.\gradlew.bat runServer
-.\gradlew.bat build
-```
+- Advanced Magic Map
+- Large interactive map GUI
+- Clickable boss icons for teleportation
+- Optional progression-aware teleport restrictions
+- Safe teleport
+- better map refresh after teleport
+
+Twilight Forest is a required dependency.
