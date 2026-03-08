@@ -267,13 +267,15 @@ public class AdvancedMagicMapItemRenderer {
     }
 
     private static Field resolveMapDecorationsField() {
-        try {
-            Field field = MapData.class.getDeclaredField("mapDecorations");
-            field.setAccessible(true);
-            return field;
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException("Unable to access vanilla map decorations field.", e);
+        for (String candidateName : new String[] {"mapDecorations", "field_76203_h"}) {
+            try {
+                Field field = MapData.class.getDeclaredField(candidateName);
+                field.setAccessible(true);
+                return field;
+            } catch (ReflectiveOperationException ignored) {
+            }
         }
+        throw new IllegalStateException("Unable to access vanilla map decorations field.");
     }
 
     public static final class HoveredFeature {

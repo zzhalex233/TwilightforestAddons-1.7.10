@@ -7,7 +7,18 @@ import java.util.Set;
 import twilightforest.TFMagicMapData;
 
 public final class AdvancedMagicMapDataUtils {
-    private static final Field FEATURE_ID_FIELD = resolveFeatureIdField();
+    private static final Field FEATURE_ID_FIELD = resolveField(
+        TFMagicMapData.TFMapDecoration.class,
+        "Twilight Forest map decoration feature id field",
+        "featureId"
+    );
+    private static final Field MAP_DIMENSION_FIELD = resolveField(
+        TFMagicMapData.class,
+        "Twilight Forest magic map dimension field",
+        "dimension",
+        "d",
+        "field_76200_c"
+    );
 
     private AdvancedMagicMapDataUtils() {
     }
@@ -91,11 +102,15 @@ public final class AdvancedMagicMapDataUtils {
     }
 
     public static int getFeatureId(TFMagicMapData.TFMapDecoration decoration) {
-        try {
-            return FEATURE_ID_FIELD.getInt(decoration);
-        } catch (IllegalAccessException e) {
-            throw new IllegalStateException("Unable to read Twilight Forest map decoration feature id.", e);
-        }
+        return getIntField(FEATURE_ID_FIELD, decoration, "Twilight Forest map decoration feature id");
+    }
+
+    public static int getMapDimension(TFMagicMapData mapData) {
+        return getIntField(MAP_DIMENSION_FIELD, mapData, "Twilight Forest magic map dimension");
+    }
+
+    public static void setMapDimension(TFMagicMapData mapData, int dimension) {
+        setIntField(MAP_DIMENSION_FIELD, mapData, dimension, "Twilight Forest magic map dimension");
     }
 
     public static boolean isDuplicate(TFMagicMapData.TFMapDecoration a, TFMagicMapData.TFMapDecoration b) {
@@ -123,13 +138,33 @@ public final class AdvancedMagicMapDataUtils {
         return false;
     }
 
-    private static Field resolveFeatureIdField() {
+    private static int getIntField(Field field, Object target, String description) {
         try {
-            Field field = TFMagicMapData.TFMapDecoration.class.getDeclaredField("featureId");
-            field.setAccessible(true);
-            return field;
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException("Unable to resolve Twilight Forest map decoration feature id field.", e);
+            return field.getInt(target);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("Unable to read " + description + ".", e);
         }
+    }
+
+    private static void setIntField(Field field, Object target, int value, String description) {
+        try {
+            field.setInt(target, value);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("Unable to write " + description + ".", e);
+        }
+    }
+
+    private static Field resolveField(Class<?> owner, String description, String... candidateNames) {
+        for (Class<?> current = owner; current != null; current = current.getSuperclass()) {
+            for (String candidateName : candidateNames) {
+                try {
+                    Field field = current.getDeclaredField(candidateName);
+                    field.setAccessible(true);
+                    return field;
+                } catch (NoSuchFieldException ignored) {
+                }
+            }
+        }
+        throw new IllegalStateException("Unable to resolve " + description + ".");
     }
 }

@@ -1,6 +1,7 @@
 package com.zzhalex233.twilightforestaddons.item;
 
 import com.zzhalex233.twilightforestaddons.TwilightForestAddons;
+import com.zzhalex233.twilightforestaddons.map.AdvancedMagicMapDataUtils;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -39,7 +40,7 @@ public class ItemAdvancedEmptyMagicMap extends ItemMapBase {
             }
             tag.setInteger("advCenterX", mapData.xCenter);
             tag.setInteger("advCenterZ", mapData.zCenter);
-            tag.setInteger("advDimension", mapData.d);
+            tag.setInteger("advDimension", AdvancedMagicMapDataUtils.getMapDimension(mapData));
             tag.setByte("advScale", mapData.scale);
         }
 

@@ -38,7 +38,7 @@ public class PacketSyncAdvancedMapCenterHandler implements IMessageHandler<Packe
         mapData.scale = message.getScale();
         mapData.xCenter = message.getXCenter();
         mapData.zCenter = message.getZCenter();
-        mapData.d = message.getDimension();
+        AdvancedMagicMapDataUtils.setMapDimension(mapData, message.getDimension());
         AdvancedMagicMapDataUtils.dedupeFeaturesInPlace(mapData.tfDecorations);
         mapData.markDirty();
     }

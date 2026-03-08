@@ -10,18 +10,9 @@ repositories {
         url 'https://api.modrinth.com/maven'
     }
     mavenLocal()
-    flatDir {
-        dirs rootProject.file('libs')
-    }
 }
 
 dependencies {
-    compileOnly "com.cleanroommc:sponge-mixin:0.20.12+mixin.0.8.7"
-    if (propertyBool('enable_lwjglx')) {
-        compileOnly "com.cleanroommc:lwjglx:1.0.0"
-    }
-
-    modCompileOnly name: 'twilightforest-1.12.2-3.11.1021-universal'
-    modRuntimeOnly name: 'twilightforest-1.12.2-3.11.1021-universal'
-
+    modCompileOnly 'curse.maven:the-twilight-forest-227639:3051450'
+    modRuntimeOnly 'curse.maven:the-twilight-forest-227639:3051450'
 }

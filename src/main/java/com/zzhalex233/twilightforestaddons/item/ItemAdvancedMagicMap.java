@@ -57,7 +57,7 @@ public class ItemAdvancedMagicMap extends ItemMap {
 
         mapData.scale = scale;
         mapData.calculateMapCenter(centerX, centerZ, mapData.scale);
-        mapData.d = world.provider.getDimension();
+        AdvancedMagicMapDataUtils.setMapDimension(mapData, world.provider.getDimension());
         mapData.trackingPosition = trackingPosition;
         mapData.unlimitedTracking = unlimitedTracking;
         mapData.markDirty();
@@ -105,7 +105,7 @@ public class ItemAdvancedMagicMap extends ItemMap {
             mapData = new TFMagicMapData(mapName);
             mapData.scale = 4;
             mapData.calculateMapCenter(world.getWorldInfo().getSpawnX(), world.getWorldInfo().getSpawnZ(), mapData.scale);
-            mapData.d = world.provider.getDimension();
+            AdvancedMagicMapDataUtils.setMapDimension(mapData, world.provider.getDimension());
             mapData.markDirty();
             world.setData(mapName, mapData);
             writeCenterToStack(stack, mapData);
@@ -156,7 +156,7 @@ public class ItemAdvancedMagicMap extends ItemMap {
     }
 
     private void updateMagicMapData(World world, Entity entity, TFMagicMapData mapData) {
-        if (world.provider.getDimension() != mapData.d || !(entity instanceof EntityPlayer)) {
+        if (world.provider.getDimension() != AdvancedMagicMapDataUtils.getMapDimension(mapData) || !(entity instanceof EntityPlayer)) {
             return;
         }
 
@@ -267,7 +267,7 @@ public class ItemAdvancedMagicMap extends ItemMap {
         AdvancedMagicMapDataUtils.shiftMapContent(mapData, shiftXPixels, shiftZPixels, true);
         mapData.xCenter = desiredCenterX;
         mapData.zCenter = desiredCenterZ;
-        mapData.d = world.provider.getDimension();
+        AdvancedMagicMapDataUtils.setMapDimension(mapData, world.provider.getDimension());
         markWholeMapDirty(mapData);
         AdvancedMagicMapDataUtils.dedupeFeaturesInPlace(mapData.tfDecorations);
     }
@@ -302,7 +302,7 @@ public class ItemAdvancedMagicMap extends ItemMap {
             player.connection.sendPacket(packet);
         }
         ModNetwork.CHANNEL.sendTo(
-            new PacketSyncAdvancedMapCenter(stack.getMetadata(), mapData.xCenter, mapData.zCenter, mapData.d, mapData.scale),
+            new PacketSyncAdvancedMapCenter(stack.getMetadata(), mapData.xCenter, mapData.zCenter, AdvancedMagicMapDataUtils.getMapDimension(mapData), mapData.scale),
             player
         );
         writeCenterToStack(stack, mapData);
@@ -314,7 +314,7 @@ public class ItemAdvancedMagicMap extends ItemMap {
         }
 
         ModNetwork.CHANNEL.sendTo(
-            new PacketSyncAdvancedMapCenter(stack.getMetadata(), mapData.xCenter, mapData.zCenter, mapData.d, mapData.scale),
+            new PacketSyncAdvancedMapCenter(stack.getMetadata(), mapData.xCenter, mapData.zCenter, AdvancedMagicMapDataUtils.getMapDimension(mapData), mapData.scale),
             (EntityPlayerMP) player
         );
         writeCenterToStack(stack, mapData);
@@ -324,7 +324,7 @@ public class ItemAdvancedMagicMap extends ItemMap {
         NBTTagCompound tag = getOrCreateTag(stack);
         return tag.getInteger("advCenterX") != mapData.xCenter
             || tag.getInteger("advCenterZ") != mapData.zCenter
-            || tag.getInteger("advDimension") != mapData.d
+            || tag.getInteger("advDimension") != AdvancedMagicMapDataUtils.getMapDimension(mapData)
             || tag.getByte("advScale") != mapData.scale;
     }
 
@@ -332,7 +332,7 @@ public class ItemAdvancedMagicMap extends ItemMap {
         NBTTagCompound tag = getOrCreateTag(stack);
         tag.setInteger("advCenterX", mapData.xCenter);
         tag.setInteger("advCenterZ", mapData.zCenter);
-        tag.setInteger("advDimension", mapData.d);
+        tag.setInteger("advDimension", AdvancedMagicMapDataUtils.getMapDimension(mapData));
         tag.setByte("advScale", mapData.scale);
     }
 

@@ -4,7 +4,7 @@ plugins {
     id 'maven-publish'
     id 'com.gradleup.shadow' version '9.2.2'
     id 'xyz.wagyourtail.unimined' version '1.4.10-kappa'
-    id 'net.kyori.blossom'  version '2.1.0'
+    id 'net.kyori.blossom' version '2.1.0'
 }
 
 apply from: 'gradle/scripts/helpers.gradle'
@@ -31,11 +31,11 @@ base {
     archivesName = propertyString('mod_id')
 }
 
-
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
     if (propertyBool('generate_sources_jar')) {
         withSourcesJar()
     }
@@ -56,29 +56,25 @@ configurations {
 }
 
 unimined.minecraft {
-    version "1.12.2"
+    version '1.12.2'
 
     mappings {
-        mcp("stable", "39-1.12")
+        mcp('stable', '39-1.12')
     }
 
-    cleanroom {
+    minecraftForge {
         if (propertyBool('use_access_transformer')) {
             accessTransformer "${rootProject.projectDir}/src/main/resources/${propertyString('access_transformer_locations')}"
         }
-        loader "0.4.4-alpha"
+        loader '14.23.5.2860'
         runs.auth.username = minecraft_username
         runs.all {
             def extraArgs = propertyString('extra_jvm_args')
             if (extraArgs != null && !extraArgs.trim().isEmpty()) {
-                jvmArgs += extraArgs.split { "\\s+" }.toList()
-            }
-            if (propertyBool('enable_foundation_debug')) {
-                systemProperty("foundation.dump", "true")
-                systemProperty("foundation.verbose", "true")
+                jvmArgs += extraArgs.split { '\\s+' }.toList()
             }
             if (propertyBool('is_coremod')) {
-                systemProperty("fml.coreMods.load", propertyString('coremod_plugin_class_name'))
+                systemProperty('fml.coreMods.load', propertyString('coremod_plugin_class_name'))
             }
             return
         }
@@ -123,7 +119,6 @@ dependencies {
 apply from: 'gradle/scripts/dependencies.gradle'
 
 processResources {
-
     inputs.property 'mod_id', propertyString('mod_id')
     inputs.property 'mod_name', propertyString('mod_name')
     inputs.property 'mod_version', propertyString('mod_version')
@@ -138,15 +133,15 @@ processResources {
 
     filesMatching(filterList) { fcd ->
         fcd.expand(
-                'mod_id': propertyString('mod_id'),
-                'mod_name': propertyString('mod_name'),
-                'mod_version': propertyString('mod_version'),
-                'mod_description': propertyString('mod_description'),
-                'mod_authors': "${propertyStringList('mod_authors', ',').join(', ')}",
-                'mod_credits': propertyString('mod_credits'),
-                'mod_url': propertyString('mod_url'),
-                'mod_update_json': propertyString('mod_update_json'),
-                'mod_logo_path': propertyString('mod_logo_path'),
+            'mod_id': propertyString('mod_id'),
+            'mod_name': propertyString('mod_name'),
+            'mod_version': propertyString('mod_version'),
+            'mod_description': propertyString('mod_description'),
+            'mod_authors': "${propertyStringList('mod_authors', ',').join(', ')}",
+            'mod_credits': propertyString('mod_credits'),
+            'mod_url': propertyString('mod_url'),
+            'mod_update_json': propertyString('mod_update_json'),
+            'mod_logo_path': propertyString('mod_logo_path'),
         )
     }
 
@@ -179,35 +174,33 @@ jar {
     }
     doFirst {
         manifest {
-            def attribute_map = [:]
-            attribute_map['ModType'] = "CRL"
+            def attributeMap = [:]
             if (configurations.contain.size() > 0) {
-                attribute_map['ContainedDeps'] = configurations.contain.collect { it.name }.join(' ')
-                attribute_map['NonModDeps'] = true
+                attributeMap['ContainedDeps'] = configurations.contain.collect { it.name }.join(' ')
+                attributeMap['NonModDeps'] = true
             }
             if (propertyBool('is_coremod')) {
-                attribute_map['FMLCorePlugin'] = propertyString('coremod_plugin_class_name')
+                attributeMap['FMLCorePlugin'] = propertyString('coremod_plugin_class_name')
                 if (propertyBool('coremod_includes_mod')) {
-                    attribute_map['FMLCorePluginContainsFMLMod'] = true
+                    attributeMap['FMLCorePluginContainsFMLMod'] = true
                 }
             }
             if (propertyBool('use_access_transformer')) {
-                attribute_map['FMLAT'] = propertyString('access_transformer_locations')
+                attributeMap['FMLAT'] = propertyString('access_transformer_locations')
             }
-            attributes(attribute_map)
+            attributes(attributeMap)
         }
     }
     if (propertyBool('enable_shadow')) {
-        finalizedBy(tasks.named("remapShadowJar"))
+        finalizedBy(tasks.named('remapShadowJar'))
     } else {
-        finalizedBy(tasks.named("remapJar"))
+        finalizedBy(tasks.named('remapJar'))
     }
 }
 
-
 shadowJar {
     configurations = [project.configurations.shadow]
-    archiveClassifier = "shadow"
+    archiveClassifier = 'shadow'
 }
 
 remapJar {
@@ -220,7 +213,7 @@ remapJar {
 }
 
 compileTestJava {
-    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 test {
@@ -237,6 +230,7 @@ test {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+    options.release = 8
 }
 
 apply from: 'gradle/scripts/publishing.gradle'
